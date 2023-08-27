@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Test access_nested_map function."""
+"""Test functions module."""
 
 
-from utils import access_nested_map
-from unittest import TestCase
+from utils import access_nested_map, get_json
+import unittest
+from unittest.mock import patch, Mock
 from parameterized import parameterized
-from typing import Mapping, Sequence, Any
+from typing import Mapping, Sequence, Any, Dict
 
 
-class TestAccessNestedMap(TestCase):
-    """A class to test the method access_nested_map."""
+class TestAccessNestedMap(unittest.TestCase):
+    """A class to test the access_nested_map function."""
 
     @parameterized.expand([
         [{"a": 1}, ("a",), 1],
@@ -34,3 +35,25 @@ class TestAccessNestedMap(TestCase):
         with self.assertRaises(KeyError) as context:
             access_nested_map(a, b)
             self.assertEqual(str(context.exception), str(expected_result))
+
+
+class TestGetJson(unittest.TestCase):
+    """A class that tests the get_json function."""
+
+    @parameterized.expand([
+        ["http://example.com", {"payload": True}, {"payload": True}],
+        ["http://holberton.io", {"payload": False}, {"payload": False}]
+    ])
+    @patch('requests.get')
+    def test_get_json(self,
+                      test_url: str,
+                      test_payload: Dict[str, bool],
+                      expected_output: Dict[str, bool],
+                      mock_get: Mock):
+        """Test that the get_json function return the expected output."""
+        mock_resp = Mock()
+        mock_resp.json.return_value = test_payload
+        mock_get.return_value = mock_resp
+        result = get_json(test_url)
+        mock_get.assert_called_once_with(test_url)
+        self.assertEqual(result, expected_output)
