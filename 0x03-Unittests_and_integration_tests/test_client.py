@@ -37,3 +37,20 @@ class TestGithubOrgClient(unittest.TestCase):
             client_org = GithubOrgClient('google')
             expected_repos_url = "https://api.github.com/orgs/google/repos"
             self.assertEqual(client_org._public_repos_url, expected_repos_url)
+
+    @patch('client.get_json')
+    def test_public_repos(self, mock_get_json):
+        """Test public_repos method of the GithubOrgClient class."""
+        mock_get_json.return_value = [
+                                      {"name": "alx-backend-js"},
+                                      {"name": "alx-backend-py"}
+                                     ]
+        with patch.object(GithubOrgClient,
+                          '_public_repos_url',
+                          new_callable=PropertyMock) as mock_repos_url:
+            mock_repos_url.return_value = "https://api.github.com/orgs/alx"
+            client_org = GithubOrgClient('alx')
+            self.assertEqual(client_org.public_repos(),
+                             ['alx-backend-js', 'alx-backend-py'])
+            mock_get_json.assert_called_once()
+            mock_repos_url.assert_called_once()
