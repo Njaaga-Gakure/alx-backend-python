@@ -2,9 +2,10 @@
 """Test GithubOrgClient class."""
 
 
+from typing import Dict
 from client import GithubOrgClient
 import unittest
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch, PropertyMock, MagicMock
 from parameterized import parameterized
 
 
@@ -39,7 +40,7 @@ class TestGithubOrgClient(unittest.TestCase):
             self.assertEqual(client_org._public_repos_url, expected_repos_url)
 
     @patch('client.get_json')
-    def test_public_repos(self, mock_get_json):
+    def test_public_repos(self, mock_get_json: MagicMock):
         """Test public_repos method of the GithubOrgClient class."""
         mock_get_json.return_value = [
                                       {"name": "alx-backend-js"},
@@ -54,3 +55,16 @@ class TestGithubOrgClient(unittest.TestCase):
                              ['alx-backend-js', 'alx-backend-py'])
             mock_get_json.assert_called_once()
             mock_repos_url.assert_called_once()
+
+    @parameterized.expand([
+        [{"license": {"key": "my_license"}}, "my_license", True],
+        [{"license": {"key": "other_license"}}, "my_license", False],
+    ])
+    def test_has_license(self,
+                         repo: Dict,
+                         license: str,
+                         expected_result: bool):
+        """Test has_license method of the GithubOrgClient class."""
+        client_org = GithubOrgClient('google')
+        self.assertEqual(client_org.has_license(repo, license),
+                         expected_result)
